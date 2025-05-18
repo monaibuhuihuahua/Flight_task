@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询航班 - 航空订票系统</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        h2 { text-align: center; color: #333; }
+        .search-form { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; } /* 添加 flex-wrap */
+        .form-group { flex: 1; min-width: 150px; } /* 添加 min-width */
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .form-group input[type="text"], input[type="date"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .search-form button { padding: 8px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; } /* 绿色搜索按钮 */
+        .search-form button:hover { background-color: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .no-flights { text-align: center; color: #666; margin-top: 20px; }
+        .flash { padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .action-links a { margin-right: 10px; text-decoration: none; color: #007bff; }
+        .action-links a:hover { text-decoration: underline; }
+        /* 调整删除按钮样式 */
+        .delete-form { display:inline; margin: 0; padding: 0;}
+        .delete-button {
+            background: none;
+            border: none;
+            color: #dc3545; /* 红色 */
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline; /* 看起来像链接 */
+            font-size: inherit; /* 继承父元素字体大小 */
+            font-family: inherit; /* 继承父元素字体 */
+        }
+         .delete-button:hover {
+             text-decoration: none; /* 鼠标悬停时取消下划线 */
+         }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>航班查询</h2>
+
+        {# 显示消息闪现 #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {# 搜索表单 #}
+        <form method="GET" action="{{ url_for('main.list_flights') }}" class="search-form"> {# 确保这里的 url_for 加上了 'main.' #}
+            {# 添加航班号搜索字段 #}
+            <div class="form-group">
+                <label for="flight_number">航班号:</label>
+                {# 使用 value="{{ flight_number if flight_number is not none else '' }}" 来回填用户输入的搜索值 #}
+                <input type="text" id="flight_number" name="flight_number" value="{{ flight_number or '' }}">
+            </div>
+            {# 添加其他搜索字段 #}
+            <div class="form-group">
+                <label for="origin">出发地:</label>
+                {# 使用 value="{{ origin if origin is not none else '' }}" 来回填用户输入的搜索值 #}
+                <input type="text" id="origin" name="origin" value="{{ origin or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="destination">目的地:</label>
+                 {# 使用 value="{{ destination if destination is not none else '' }}" 来回填用户输入的搜索值 #}
+                <input type="text" id="destination" name="destination" value="{{ destination or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="date">日期:</label>
+                 {# 使用 value="{{ date if date is not none else '' }}" 来回填用户输入的搜索值 #}
+                <input type="date" id="date" name="date" value="{{ date or '' }}">
+            </div>
+            <button type="submit">搜索</button>
+        </form>
+
+        {# 航班列表 #}
+        {% if flights %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>航班号</th>
+                        <th>飞机号</th>
+                        <th>出发地</th>
+                        <th>目的地</th>
+                        <th>起飞时间</th>
+                        <th>到达时间</th>
+                        <th>总座位</th>
+                        <th>可用座位</th>
+                        <th>票价</th>
+                        <th>操作</th> {# 预留操作列 #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flight in flights %}
+                    <tr>
+                        <td>{{ flight.flight_number }}</td>
+                        <td>{{ flight.aircraft_number }}</td>
+                        <td>{{ flight.origin }}</td>
+                        <td>{{ flight.destination }}</td>
+                        {# 格式化日期时间显示 #}
+                        <td>{{ flight.departure_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ flight.arrival_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ flight.total_seats }}</td>
+                        <td>{{ flight.available_seats }}</td>
+                        <td>{{ "%.2f" | format(flight.price) }}</td> {# 格式化票价为两位小数 #}
+                        <td class="action-links">
+                            {# 用户预订按钮/链接 #}
+                            {# 如果用户已登录，并且航班有可用座位，可以显示预订链接 #}
+                            {% if 'user_id' in session and flight.available_seats > 0 %}
+                                <a href="{{ url_for('main.book_flight', flight_id=flight.id) }}">预订</a>
+                            {% elif flight.available_seats <= 0 %}
+                                <span>已售罄</span> {# 如果售罄，显示已售罄 #}
+                            {% else %}
+                                {# 未登录用户看到什么？ 可以留空或提示登录 #}
+                                {# <a href="{{ url_for('main.login') }}">登录预订</a> #}
+                            {% endif %}
+
+
+                            {# 如果用户是管理员，可以显示编辑和删除链接 #}
+                            {% if is_admin %} {# 使用传递过来的 is_admin 变量 #}
+                                <a href="{{ url_for('main.edit_flight', flight_id=flight.id) }}">编辑</a> {# 编辑路由已实现 #}
+
+                                {# 删除航班的表单 (使用 POST 方法) #}
+                                <form action="{{ url_for('main.delete_flight', flight_id=flight.id) }}" method="POST" class="delete-form"> {# 使用 POST 方法 #}
+                                    <button type="submit" class="delete-button" onclick="return confirm('确定要删除此航班吗？');">删除</button> {# 将删除链接变成按钮 #}
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {# 如果没有找到航班 #}
+            <p class="no-flights">没有找到符合条件的航班。</p>
+        {% endif %}
+
+        {# 添加链接回到主页、航班列表和我的订单 #}
+        {# 只有在用户登录后才显示“我的订单”链接 #}
+        <p style="margin-top: 20px;"><a href="{{ url_for('main.list_flights') }}">刷新航班列表</a> | <a href="{{ url_for('main.index') }}">返回主页</a> {% if 'user_id' in session %} | <a href="{{ url_for('main.my_orders') }}">我的订单</a>{% endif %}</p>
+
+    </div>
+</body>
+</html>

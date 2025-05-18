@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页 - 航空订票系统</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); text-align: center; }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { color: #666; margin-bottom: 20px; }
+        .links a { margin: 0 10px; text-decoration: none; color: #007bff; font-size: 1.1em; }
+        .links a:hover { text-decoration: underline; }
+         .flash { padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: left; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        {# 显示消息闪现 #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if user %}
+            {# 如果用户已登录 #}
+            <h1>欢迎回来，{{ user.username }}！</h1>
+            <p>您可以进行以下操作：</p>
+            <div class="links">
+                <a href="{{ url_for('main.list_flights') }}">查询航班</a>
+                <a href="{{ url_for('main.my_orders') }}">我的订单</a> {# 用户订单页面 #}
+
+                {% if is_admin %}
+                    {# 如果是管理员，显示管理员链接 #}
+                    <a href="{{ url_for('main.add_flight') }}">添加航班</a>
+                    <a href="{{ url_for('main.admin_list_orders') }}">查看所有订单</a> {# <-- 添加了这个链接 #}
+                {% endif %}
+
+                <a href="{{ url_for('main.logout') }}">退出登录</a>
+            </div>
+        {% else %}
+            {# 如果用户未登录 #}
+            <h1>欢迎来到航空订票系统！</h1>
+            <p>请注册或登录以继续。</p>
+                <div class="links">
+                    <a href="{{ url_for('main.register') }}">注册</a>
+                    <a href="{{ url_for('main.login') }}">登录</a>
+                     <a href="{{ url_for('main.list_flights') }}">游客查询航班</a> {# 游客也可以查询航班 #}
+                </div>
+        {% endif %}
+    </div>
+</body>
+</html>

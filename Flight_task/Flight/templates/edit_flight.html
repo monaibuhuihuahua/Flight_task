@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修改航班 - 航空订票系统 (管理员)</title>
+    <style>
+        /* 可以使用和添加航班模板相似的基本 CSS 样式 */
+        body { font-family: sans-serif; }
+        .container { max-width: 600px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], input[type="datetime-local"] { width: 100%; padding: 10px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #ffc107; color: black; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; } /* 黄色按钮 */
+        button:hover { background-color: #e0a800; }
+        .flash { padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>修改航班信息</h2>
+
+         {# 显示消息闪现 #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {# 表单的 action 指向同一个 edit_flight 路由，需要包含 flight.id #}
+        <form method="POST" action="{{ url_for('main.edit_flight', flight_id=flight.id) }}">
+            <div class="form-group">
+                <label for="flight_number">航班号:</label>
+                {# 使用 value 属性预填充当前航班号 #}
+                <input type="text" id="flight_number" name="flight_number" value="{{ flight.flight_number }}" required>
+            </div>
+             <div class="form-group">
+                <label for="aircraft_number">飞机号:</label>
+                {# 使用 value 属性预填充当前飞机号 #}
+                <input type="text" id="aircraft_number" name="aircraft_number" value="{{ flight.aircraft_number }}" required>
+            </div>
+            <div class="form-group">
+                <label for="origin">出发地:</label>
+                 {# 使用 value 属性预填充当前出发地 #}
+                <input type="text" id="origin" name="origin" value="{{ flight.origin }}" required>
+            </div>
+            <div class="form-group">
+                <label for="destination">目的地:</label>
+                {# 使用 value 属性预填充当前目的地 #}
+                <input type="text" id="destination" name="destination" value="{{ flight.destination }}" required>
+            </div>
+            <div class="form-group">
+                <label for="departure_time">起飞时间:</label>
+                {# 使用视图函数中格式化好的字符串预填充 datetime-local #}
+                <input type="datetime-local" id="departure_time" name="departure_time" value="{{ flight.departure_time_str }}" required>
+            </div>
+            <div class="form-group">
+                <label for="arrival_time">到达时间:</label>
+                 {# 使用视图函数中格式化好的字符串预填充 datetime-local #}
+                <input type="datetime-local" id="arrival_time" name="arrival_time" value="{{ flight.arrival_time_str }}" required>
+            </div>
+            <div class="form-group">
+                <label for="total_seats">总座位数:</label>
+                 {# 使用 value 属性预填充当前总座位数 #}
+                <input type="number" id="total_seats" name="total_seats" value="{{ flight.total_seats }}" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="price">票价:</label>
+                {# 使用 value 属性预填充当前票价，并格式化为两位小数 #}
+                <input type="number" id="price" name="price" value="{{ "%.2f" | format(flight.price) }}" required min="0" step="0.01">
+            </div>
+            <div>
+                <button type="submit">更新航班</button>
+            </div>
+        </form>
+
+        {# 添加返回航班列表的链接 #}
+        <p><a href="{{ url_for('main.list_flights') }}">取消并返回航班列表</a></p>
+
+    </div>
+</body>
+</html>

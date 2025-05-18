@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 航空订票系统</title>
+    <style>
+        /* 可以使用和 register.html 相同的基本 CSS 样式 */
+        body { font-family: sans-serif; }
+        .container { max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #68cd6d; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; } /* 绿色按钮 */
+        button:hover { background-color: #45a049; }
+         .flash { padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .flash.danger { background-color: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
+        .flash.success { background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>用户登录</h2>
+
+         {# 显示消息闪现 #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.login') }}"> {# 这里修改了 url_for #}
+            <div>
+                <label for="username">用户名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="password">密码:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <button type="submit">登录</button>
+            </div>
+        </form>
+
+        <p>还没有账户？<a href="{{ url_for('main.register') }}">立即注册</a></p> {# 这里修改了 url_for #}
+    </div>
+</body>
+</html>

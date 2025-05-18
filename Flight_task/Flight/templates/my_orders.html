@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的订单 - 航空订票系统</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .flash { padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+        .flash.danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .no-orders { text-align: center; color: #666; margin-top: 20px; }
+         .action-links a { margin-right: 10px; text-decoration: none; color: #007bff; }
+        .action-links a:hover { text-decoration: underline; }
+        /* 退票按钮样式 */
+        .refund-form { display:inline; margin: 0; padding: 0;}
+        .refund-button {
+            background: none;
+            border: none;
+            color: #dc3545; /* 红色 */
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline; /* 看起来像链接 */
+            font-size: inherit; /* 继承父元素字体大小 */
+            font-family: inherit; /* 继承父元素字体 */
+        }
+         .refund-button:hover {
+             text-decoration: none; /* 鼠标悬停时取消下划线 */
+         }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>我的订单</h2>
+
+        {# 显示消息闪现 #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {# 订单列表 #}
+        {% if orders %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>订票时间</th>
+                        <th>航班号</th>
+                        <th>出发地</th>
+                        <th>目的地</th>
+                        <th>起飞时间</th>
+                        <th>座位号</th>
+                         <th>客户姓名</th>
+                        <th>身份证号</th>
+                        <th>操作</th> {# 退票操作列 #}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                         {# 格式化订票时间 #}
+                        <td>{{ order.booking_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        {# 通过 order.flight 访问关联的航班对象 #}
+                        <td>{{ order.flight.flight_number }}</td>
+                        <td>{{ order.flight.origin }}</td>
+                        <td>{{ order.flight.destination }}</td>
+                         {# 格式化起飞时间 #}
+                        <td>{{ order.flight.departure_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ order.seat_number }}</td>
+                        {# 通过 order.customer 访问关联的客户对象 #}
+                        <td>{{ order.customer.name }}</td>
+                        <td>{{ order.customer.id_card_number }}</td>
+                        <td class="action-links">
+                            {# 退票表单 (使用 POST 方法) #}
+                            <form action="{{ url_for('main.refund_ticket', order_id=order.id) }}" method="POST" class="refund-form"> {# 提交到退票路由 #}
+                                <button type="submit" class="refund-button" onclick="return confirm('确定要退掉此机票吗？');">退票</button> {# 退票按钮 #}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {# 如果没有找到订单 #}
+            <p class="no-orders">您目前没有订单。</p>
+        {% endif %}
+
+        {# 添加链接回到主页或航班列表 #}
+        <p style="margin-top: 20px;"><a href="{{ url_for('main.list_flights') }}">返回航班列表</a> | <a href="{{ url_for('main.index') }}">返回主页</a></p>
+
+    </div>
+</body>
+</html>
